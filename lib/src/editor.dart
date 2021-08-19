@@ -29,21 +29,7 @@ class Editor {
     }
     if (_entry.currentEditor != this) throw IllegalStateException();
     if (!_entry.readable) _written[index] = true;
-    return FaultHidingIOSink(_entry.getDirtyFile(index).openWrite(), (e) => _hasErrors = true);
-  }
-
-  /// index需要对得上上面的valueCount
-  /// 配置对应的内容值到文件中
-  Future<void> set(int index, Object value) async {
-    FaultHidingIOSink? faultHidingIOSink;
-    try {
-      faultHidingIOSink = newOutputIOSink(index);
-      faultHidingIOSink.write(value);
-      await faultHidingIOSink.flush();
-      await faultHidingIOSink.close();
-    } finally {
-      faultHidingIOSink?.close();
-    }
+    return FaultHidingIOSink(_entry.getDirtyFile(index).openSync(mode: FileMode.write), (e) => _hasErrors = true);
   }
 
   /// 提交
