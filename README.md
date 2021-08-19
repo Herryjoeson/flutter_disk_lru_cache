@@ -44,16 +44,16 @@ void main() async {
   FaultHidingIOSink faultHidingIOSink = editor.newOutputIOSink(0);
   
   /// write uint8List to disk,but it is dirty,is not commited
-  faultHidingIOSink.write(imageBytes);
+  await faultHidingIOSink.writeBytes(imageBytes);
+  
+  /// write text to disk,but it is dirty,is not commited
+  await faultHidingIOSink.write("text");
+  
+  /// flush io
+  await faultHidingIOSink.flush();
   
   /// close the io stream
   await faultHidingIOSink.close();
-  
-  /// other way to write data to file
-  /// The index needs the corresponding valuecount and cannot be greater than the valuecount. For example, if valuecount = = 1, the sequence
-  /// number of the file version should be 0. On the contrary, if valuecount is multiple versions, 0 has started to increment as the version
-  /// sequence number
-  await editor.set(index, value);
   
   /// comfirm commit
   await editor.commit(diskLruCache);
@@ -66,7 +66,13 @@ void main() async {
   
   /// request to valueCount version
   RandomAccessFile inV1 = snapshot.getRandomAccessFile(0);
-  Uint8List bytes = inV1.readSync(inV1.lengthSync());
+  Uint8List bytes = inV1.readSync(snapshot.getLengths(0));
+  
+  /// bytes to text
+  String text = utf8.decode(bytes);
+  
+  /// close snapshot 
+  snapshot.close();
   
   /// edit snapshot
   Editor? editor = await diskLruCache.edit(snapshot.key,sequenceNumber: snapshot.sequenceNumber);
